@@ -1,0 +1,30 @@
+{
+  app: {
+    logging: 'debug'
+    //'info' | 'debug' | 'warning' | 'error'
+  },
+  api: {
+    version: 'v1',
+    endpoint: 'api',
+    http: {
+      ip: '0.0.0.0',
+      port: 5001
+    },
+    basic: {
+      auth: {
+        name: 'user',
+        pass: 'pass'
+      }
+    }
+  },
+  db: {
+    dialect: 'postgres',
+    host: '127.0.0.1',
+    port: 5432,
+    user: 'postgres',
+    pass: 'mysecurepassword',
+    name: 'voucher_db',
+    pool_min: 15,
+    pool_max: 25
+  }
+}

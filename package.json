@@ -1,0 +1,65 @@
+{
+  "name": "auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./out/Main.js",
+  "bin": "./out/Main.js",
+  "scripts": {
+    "start": "node out/Main.js",
+    "dev": "pm2-runtime --watch out/Main.js",
+    "watch": "tsc --watch --project tsconfig.json",
+    "build": "tsc --project tsconfig.json",
+    "test": "echo testing... && ",
+    "beforeStart": "npm i && npm run build",
+    "postinstall": "npm run build"
+  },
+  "repository": {
+    "directory": "",
+    "type": "",
+    "url": ""
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/**/*",
+      "config_map/**/*"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "jest": "^26.6.3",
+    "pm2": "^4.5.1",
+    "postman-sandbox": "^4.0.0",
+    "tslint": "^6.1.3",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "@types/ms": "^0.7.31",
+    "json5": "^2.1.3",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.0",
+    "koa-basic-auth": "^4.0.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^10.0.0",
+    "moment": "^2.29.1",
+    "ms": "^2.1.3",
+    "passport": "^0.4.1",
+    "pg": "^8.5.1",
+    "reflect-metadata": "^0.1.13",
+    "sequelize": "^6.3.5",
+    "uuid": "^8.3.2"
+  },
+  "optionalDependencies": {
+    "@types/json5": "0.0.30",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/koa": "^2.11.6",
+    "@types/koa-basic-auth": "^2.0.3",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-router": "^7.4.1",
+    "@types/moment": "^2.13.0",
+    "@types/sequelize": "^4.28.9",
+    "@types/uuid": "^8.3.0"
+  }
+}
