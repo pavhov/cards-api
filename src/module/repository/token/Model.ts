@@ -42,6 +42,15 @@ export default class TokenModel extends BaseModel<IToken> {
     };
 
     /**
+     * @name AccessTokenSecret
+     */
+    public static AccessTokenSecret?: ModelAttributeColumnOptions = {
+        type: DataTypes.TEXT,
+        field: "access_token_secret",
+        allowNull: true,
+    };
+
+    /**
      * @name ExpiresIn
      */
     public static ExpiresIn?: ModelAttributeColumnOptions = {
@@ -85,6 +94,7 @@ export default class TokenModel extends BaseModel<IToken> {
         TokenId: TokenModel.TokenId,
         ClientId: TokenModel.ClientId,
         AccessToken: TokenModel.AccessToken,
+        AccessTokenSecret: TokenModel.AccessTokenSecret,
         ExpiresIn: TokenModel.ExpiresIn,
         RefreshToken: TokenModel.RefreshToken,
         RefreshTokenExpiresIn: TokenModel.RefreshTokenExpiresIn,

@@ -1,5 +1,6 @@
-import * as jwt        from "jsonwebtoken";
-import { SignOptions } from "jsonwebtoken";
+import * as jwt                                                                             from "jsonwebtoken";
+import { JsonWebTokenError, NotBeforeError, SignOptions, TokenExpiredError, VerifyOptions } from "jsonwebtoken";
+import { error }                                                                            from "../../lib/utils/Logger";
 
 export default class JWT {
     private readonly secretOrPrivateKey;
@@ -17,19 +18,31 @@ export default class JWT {
         return jwt.sign(payload, this.secretOrPrivateKey, jwtSignOptions);
     };
 
-    public verify(token: any, signOptions?: SignOptions) {
-        const jwtSignOptions = Object.assign({}, signOptions, this.options);
-        return jwt.verify(token, this.secretOrPrivateKey, jwtSignOptions);
+    public verify(token: any, signOptions?: VerifyOptions) {
+        const jwtSignOptions = Object.assign({}, signOptions, this.options, {jwtid: signOptions.jwtid});
+        return jwt.verify(token, this.secretOrPublicKey, jwtSignOptions);
     };
 
-    public refresh(token: string, refreshOptions?: any) {
-        const payload: any = jwt.verify(token, this.secretOrPublicKey, refreshOptions.verify);
+    public refresh(token: string, refreshOptions?: Partial<SignOptions> & { verify: VerifyOptions }) {
+        let payload: any;
+        try {
+            payload = this.verify(token, refreshOptions.verify);
+        } catch (e: unknown | NotBeforeError | JsonWebTokenError | TokenExpiredError) {
+            if (e instanceof TokenExpiredError) {
+                payload = jwt.decode(token, {complete: true, json: true});
+            } else {
+                error(e);
+            }
+        }
+        if (!payload) {
+            throw new Error("WrongToken");
+        }
         delete payload.iat;
         delete payload.exp;
         delete payload.nbf;
-        delete payload.jti; //We are generating a new token, if you are using jwtid during signing, pass it in refreshOptions
-        const jwtSignOptions = Object.assign({}, this.options, {jwtid: refreshOptions.jwtid});
-        // The first signing converted all needed options into claims, they are already in the payload
-        return jwt.sign(payload, this.secretOrPrivateKey, jwtSignOptions);
+        delete payload.jti;
+        delete refreshOptions.verify;
+
+        return this.sign(payload, refreshOptions);
     }
 }

@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
-import HttpError         from "./../../../../../lib/error/HttpError";
-import { error }         from "./../../../../../lib/utils/Logger";
+import HttpError from "./../../../../../lib/error/HttpError";
+import { error } from "../../../../../lib/utils/Logger";
 
 export const ExpressionHandler = async (ctx: Context, next: Next) => {
     try {

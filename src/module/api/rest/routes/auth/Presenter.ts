@@ -2,9 +2,10 @@ import { Context, Next }        from "koa";
 import { Post, Presenter, Use } from "../../../../../lib/decorators/Koa";
 import { AuthAccessor }         from "./accessor/AuthAccessor";
 
-import AuthStory                from "../../../../story/auth/Story";
-import { ClientAccessor }       from "./accessor/ClientAccessor";
-import { RefreshTokenAccessor } from "./accessor/RefreshTokenAccessor";
+import AuthStory                          from "../../../../story/auth/Story";
+import { ClientAccessor }                 from "./accessor/ClientAccessor";
+import { RefreshTokenAccessor }           from "./accessor/RefreshTokenAccessor";
+import { RefreshTokenWithClientAccessor } from "./accessor/RefreshTokenWithClientAccessor";
 
 /**
  * @name AuthPresenter
@@ -56,12 +57,13 @@ export default class AuthPresenter {
      */
     @Post()
     @Use(RefreshTokenAccessor)
-    @Use(ClientAccessor)
+    @Use(RefreshTokenWithClientAccessor)
     async "/token"(context: Context, next: Next) {
-        const {header, body, client} = context.state;
-        const res: { access_token, expires_in, refresh_token, refresh_token_expires_in } = await this.stories.Auth.Refresh(header, body, client);
+        const {header, body, token} = context.state;
+        const res: { access_token, expires_in, refresh_token, refresh_token_expires_in } = await this.stories.Auth.Refresh(header, body, token);
 
         await context.assert(res, 400, "Wrong user!");
+        context.body = res;
         try {
             context.body = res;
         } catch (e) {

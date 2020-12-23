@@ -7,7 +7,7 @@ import { error }         from "../../../../../../lib/utils/Logger";
 /**
  * @name AuthAccessor
  */
-export class ClientAccessor {
+export class RefreshTokenWithClientAccessor {
     /**
      * @name stories
      * @private
@@ -39,18 +39,17 @@ export class ClientAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         try {
-            const client = await this.stories.Auth.tasks.Client.getOne({
-                rejectOnEmpty: false,
+            const client = await this.stories.Auth.tasks.Token.getOne({
+                rejectOnEmpty: true,
                 where: {
-                    ClientIndex: context.state.body.clientId,
+                    RefreshToken: context.state.body.refresh_token,
+                    ExpiresIn: {
+                        [sequelize.Op.lt]: moment().utc().toDate(),
+                    }
                 },
-                include: this.stories.Auth.tasks.Client.token({
-                    RefreshTokenExpiresIn: {
-                        [sequelize.Op.gt]: moment().utc().toDate(),
-                    },
-                }),
+                include: this.stories.Auth.tasks.Token.client(),
             });
-            context.state.client = client && client.toJSON();
+            context.state.token = client && client.toJSON();
         } catch (e) {
             error(e);
             await context.throw(404, new Error("NotFound"));

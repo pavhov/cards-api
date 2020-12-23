@@ -7,7 +7,7 @@ export default interface Interface {
     ClientId?: string;
     ClientIndex: string;
     ClientSecret: string;
-    Scopes: string;
+    Scopes: string[];
     token?: TokenInterface
     tokens?: TokenInterface
 }

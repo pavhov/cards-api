@@ -2,7 +2,7 @@ import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
 import Model                                                           from "./Model";
-import { FindOptions, ModelStatic, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
 import ClientModel                                                     from "./../client/Model";
 
 /**
@@ -104,9 +104,9 @@ export default class Task extends DBStory {
      * @name client
      * @param conditions
      */
-    public client(conditions?: ModelStatic<ClientModel>) {
+    public client(conditions?: NonNullFindOptions<Model["_attributes"]>["where"]): Includeable {
         return {
-            model: ClientModel,
+            model: ClientModel as any,
             required: true,
             where: conditions,
             as: "client",
