@@ -2,17 +2,18 @@ import { v4 }                                               from "uuid";
 import { DataTypes, Model as BaseModel }                    from "sequelize";
 import { ModelAttributeColumnOptions, ModelIndexesOptions } from "sequelize/types/lib/model";
 
-import IStore from "./Interface";
+import IVoucher from "./Interface";
 
-export default class VoucherModel extends BaseModel<IStore> {
+export default class VoucherModel extends BaseModel<IVoucher> {
     /**
-     * @name Id
+     * @name VoucherId
      */
     public static VoucherId?: ModelAttributeColumnOptions = {
         type: DataTypes.UUID,
         field: "voucher_id",
         allowNull: false,
         primaryKey: true,
+        unique: true,
         defaultValue: v4,
         validate: {
             notEmpty: true,
@@ -75,6 +76,7 @@ export default class VoucherModel extends BaseModel<IStore> {
         type: DataTypes.ENUM("PENDING", "IN_PROGRESS", "COMPLETED", "VOID", "EXPIRED"),
         field: "status",
         allowNull: false,
+        comment: "PENDING | IN_PROGRESS | COMPLETED | VOID | EXPIRED",
     };
 
     /**
@@ -162,11 +164,14 @@ export default class VoucherModel extends BaseModel<IStore> {
      */
     static get indexes(): ModelIndexesOptions[] {
         return [{
+            fields: [VoucherModel.VoucherId.field],
+            type: "UNIQUE",
+        }, {
             fields: [VoucherModel.ClientId.field],
             type: "SPATIAL",
         }, {
             fields: [VoucherModel.BatchNo.field],
-            type: "UNIQUE",
+            type: "SPATIAL",
         }, {
             fields: [VoucherModel.VoucherCode.field],
             type: "UNIQUE",

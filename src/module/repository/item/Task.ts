@@ -2,10 +2,9 @@ import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
 import Model                                                           from "./Model";
-import { FindOptions, ModelStatic, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
 import ClientModel                                                     from "./../client/Model";
-import TransactionModel                                                from "../transaction/Model";
-import ItemModel                                                       from "../item/Model";
+import VoucherModel                                                    from "../voucher/Model";
 
 /**
  * @name Task
@@ -94,12 +93,25 @@ export default class Task extends DBStory {
     }
 
     /**
+     * @name voucher
+     * @param conditions
+     */
+    public voucher(conditions?: NonNullFindOptions<VoucherModel["_attributes"]>["where"]): Includeable {
+        return {
+            model: VoucherModel as any,
+            required: true,
+            where: conditions,
+            as: "voucher",
+        };
+    }
+
+    /**
      * @name client
      * @param conditions
      */
-    public client(conditions?: ModelStatic<ClientModel>) {
+    public client(conditions?: NonNullFindOptions<ClientModel["_attributes"]>["where"]): Includeable {
         return {
-            model: ClientModel,
+            model: ClientModel as any,
             required: true,
             where: conditions,
             as: "client",
@@ -111,20 +123,10 @@ export default class Task extends DBStory {
      * @protected
      */
     protected assocs() {
-        Model.belongsTo(ClientModel, {
-            as: "client",
-            foreignKey: "ClientId",
-            targetKey: "ClientId",
-        });
-        Model.hasMany(TransactionModel, {
-            as: "transactions",
-            foreignKey: "TransactionId",
-            sourceKey: "TransactionId",
-        });
-        Model.hasMany(ItemModel, {
-            as: "items",
-            foreignKey: "ItemId",
-            sourceKey: "ItemId",
+        Model.belongsTo(VoucherModel, {
+            as: "voucher",
+            foreignKey: "VoucherId",
+            targetKey: "VoucherId",
         });
     }
 }

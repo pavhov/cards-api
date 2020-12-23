@@ -38,11 +38,11 @@ export default class AuthPresenter {
     @Use(AuthAccessor)
     @Use(ClientAccessor)
     async "/"(context: Context, next: Next) {
-        const {header, body, client} = context.state;
-        const res: { access_token, expires_in, refresh_token, refresh_token_expires_in } = await this.stories.Auth.Login(header, body, client);
-
-        await context.assert(res, 400, "Wrong user!");
         try {
+            const {header, body, client} = context.state;
+            const res: { access_token, expires_in, refresh_token, refresh_token_expires_in } = await this.stories.Auth.Login(header, body, client);
+
+            await context.assert(res, 400, "wrong");
             context.body = res;
         } catch (e) {
             await context.throw(400, e.message);
@@ -59,12 +59,11 @@ export default class AuthPresenter {
     @Use(RefreshTokenAccessor)
     @Use(RefreshTokenWithClientAccessor)
     async "/token"(context: Context, next: Next) {
-        const {header, body, token} = context.state;
-        const res: { access_token, expires_in, refresh_token, refresh_token_expires_in } = await this.stories.Auth.Refresh(header, body, token);
-
-        await context.assert(res, 400, "Wrong user!");
-        context.body = res;
         try {
+            const {header, body, token} = context.state;
+            const res: { access_token, expires_in } = await this.stories.Auth.Refresh(header, body, token);
+
+            await context.assert(res, 400, "wrong");
             context.body = res;
         } catch (e) {
             await context.throw(400, e.message);

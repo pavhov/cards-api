@@ -13,6 +13,7 @@ export default class ClientModel extends BaseModel<IStore> {
         field: "client_id",
         allowNull: false,
         primaryKey: true,
+        unique: true,
         defaultValue: v4,
         validate: {
             notEmpty: true,
@@ -78,6 +79,18 @@ export default class ClientModel extends BaseModel<IStore> {
      * @name indexes
      */
     static get indexes(): ModelIndexesOptions[] {
-        return [];
+        return [{
+            fields: [ClientModel.ClientId.field],
+            type: "UNIQUE",
+        }, {
+            fields: [ClientModel.ClientIndex.field],
+            type: "UNIQUE",
+        }, {
+            fields: [ClientModel.ClientSecret.field],
+            type: "SPATIAL",
+        }, {
+            fields: [ClientModel.Scopes.field],
+            type: "SPATIAL",
+        },];
     }
 }

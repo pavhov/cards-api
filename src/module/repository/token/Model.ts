@@ -13,6 +13,7 @@ export default class TokenModel extends BaseModel<IToken> {
         field: "token_id",
         allowNull: false,
         primaryKey: true,
+        unique: true,
         defaultValue: v4,
         validate: {
             notEmpty: true,
@@ -113,6 +114,9 @@ export default class TokenModel extends BaseModel<IToken> {
      */
     static get indexes(): ModelIndexesOptions[] {
         return [{
+            fields: [TokenModel.TokenId.field],
+            type: "UNIQUE",
+        }, {
             fields: [TokenModel.AccessToken.field],
             type: "UNIQUE",
         }, {
@@ -127,6 +131,7 @@ export default class TokenModel extends BaseModel<IToken> {
         }, {
             fields: [TokenModel.ClientId.field],
             type: "SPATIAL",
-        }];
+        },];
     }
+
 }
