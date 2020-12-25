@@ -26,5 +26,12 @@
     name: 'voucher_db',
     pool_min: 15,
     pool_max: 25
+  },
+  static: {
+    path: 'public',
+    url: 'http://127.0.0.1:5001/qr',
+    extensions: [
+      "png"
+    ]
   }
 }

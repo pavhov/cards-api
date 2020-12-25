@@ -1,9 +1,10 @@
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
-import Model                                                           from "./Model";
-import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import TokenModel                                                      from "./../token/Model";
+import Model                                                                          from "./Model";
+import { CreateOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import TokenModel                                                                     from "./../token/Model";
+import { Transaction }                                                                from "sequelize";
 
 /**
  * @name Task
@@ -96,8 +97,15 @@ export default class Task extends DBStory {
      * @param values
      * @param options
      */
-    public async createOne(values: Model["_creationAttributes"], options?: NonNullFindOptions<Model["_attributes"]>): Promise<Model> {
-        return await Model.create(values);
+    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        return await Model.create(values, options);
+    }
+
+    /**
+     * @name transaction
+     */
+    public async transaction(): Promise<Transaction> {
+        return await Model.sequelize.transaction({benchmark: true});
     }
 
     /**

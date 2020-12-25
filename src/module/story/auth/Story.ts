@@ -136,22 +136,30 @@ export default class Story {
      * @private
      */
     private async createClient(clientData: ClientInterface, tokenData: any) {
-        const client = await this.tasks.Client.createOne(clientData);
+        const tr = await this.tasks.Client.transaction();
+        try {
+            const client = await this.tasks.Client.createOne(clientData, {transaction: tr});
 
-        const [ExpiresIn, RefreshTokenExpiresIn] = [
-            moment().add(tokenData.expires_in).utc().toDate(), moment().add(tokenData.refresh_token_expires_in).utc().toDate()
-        ];
+            const [ExpiresIn, RefreshTokenExpiresIn] = [
+                moment().add(tokenData.expires_in).utc().toDate(), moment().add(tokenData.refresh_token_expires_in).utc().toDate()
+            ];
 
-        const token = await this.tasks.Token.createOne({
-            ClientId: (client as any).ClientId,
-            AccessToken: tokenData.access_token,
-            RefreshToken: tokenData.refresh_token,
-            ExpiresIn: ExpiresIn,
-            RefreshTokenExpiresIn: RefreshTokenExpiresIn,
-            AccessTokenSecret: clientData.ClientSecret,
-        });
+            const token = await this.tasks.Token.createOne({
+                ClientId: (client as any).ClientId,
+                AccessToken: tokenData.access_token,
+                RefreshToken: tokenData.refresh_token,
+                ExpiresIn: ExpiresIn,
+                RefreshTokenExpiresIn: RefreshTokenExpiresIn,
+                AccessTokenSecret: clientData.ClientSecret,
+            }, {transaction: tr});
+            await tr.commit();
 
-        return {client, token};
+            return {client, token};
+
+        } catch (e) {
+            await tr.rollback();
+            throw e;
+        }
     }
 
 }

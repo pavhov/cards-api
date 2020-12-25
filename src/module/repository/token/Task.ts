@@ -1,9 +1,10 @@
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
-import Model                                                           from "./Model";
-import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import ClientModel                                                     from "./../client/Model";
+import Model                                                                          from "./Model";
+import { CreateOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import ClientModel                                                                    from "./../client/Model";
+import { Transaction }                                                                from "sequelize";
 
 /**
  * @name Task
@@ -47,7 +48,7 @@ export default class Task extends DBStory {
      * @name getOne
      * @param options
      */
-    public getOne<M extends Model>(options: NonNullFindOptions<M["_attributes"]>): Promise<Model> {
+    public getOne(options: NonNullFindOptions<Model["_attributes"]>): Promise<Model> {
         return Model.findOne({
             ...options,
             raw: false,
@@ -96,8 +97,15 @@ export default class Task extends DBStory {
      * @param values
      * @param options
      */
-    public async createOne<M extends Model>(values: M["_creationAttributes"], options?: NonNullFindOptions<M["_attributes"]>): Promise<Model> {
-        return await Model.create(values);
+    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        return await Model.create(values, options);
+    }
+
+    /**
+     * @name transaction
+     */
+    public async transaction(): Promise<Transaction> {
+        return await Model.sequelize.transaction({benchmark: true});
     }
 
     /**

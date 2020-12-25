@@ -1,10 +1,11 @@
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
-import Model                                                           from "./Model";
-import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import ClientModel                                                     from "./../client/Model";
-import VoucherModel                                                    from "../voucher/Model";
+import Model                                                                          from "./Model";
+import { CreateOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import ClientModel                                                                    from "./../client/Model";
+import VoucherModel                                                                   from "../voucher/Model";
+import { Transaction }                                                                from "sequelize";
 
 /**
  * @name Task
@@ -48,7 +49,7 @@ export default class Task extends DBStory {
      * @name getOne
      * @param options
      */
-    public getOne<M extends Model>(options: NonNullFindOptions<M["_attributes"]>): Promise<Model> {
+    public getOne(options: NonNullFindOptions<Model["_attributes"]>): Promise<Model> {
         return Model.findOne({
             ...options,
             raw: false,
@@ -90,6 +91,31 @@ export default class Task extends DBStory {
             return this.updateOne(values, {where: options.where});
         }
         return this._model.create({...options.where, ...values});
+    }
+
+    /**
+     * @name createOne
+     * @param values
+     * @param options
+     */
+    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        await Model.create(values, options);
+    }
+
+    /**
+     * @name Item
+     * @param values
+     * @param options
+     */
+    public async createMany(values: Model["_creationAttributes"][], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        await Model.bulkCreate(values, options);
+    }
+
+    /**
+     * @name transaction
+     */
+    public async transaction(): Promise<Transaction> {
+        return await Model.sequelize.transaction({benchmark: true});
     }
 
     /**

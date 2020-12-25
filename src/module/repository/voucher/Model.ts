@@ -66,7 +66,7 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     public static CreatedDtm?: ModelAttributeColumnOptions = {
         type: DataTypes.DATE,
         field: "created_dtm",
-        allowNull: false,
+        allowNull: true,
     };
 
     /**
@@ -85,16 +85,7 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     public static Locations?: ModelAttributeColumnOptions = {
         type: `${DataTypes.TEXT} []`,
         field: "locations",
-        allowNull: false,
-    };
-
-    /**
-     * @name Items
-     */
-    public static Items?: ModelAttributeColumnOptions = {
-        type: `${DataTypes.JSONB} []`,
-        field: "items",
-        allowNull: false,
+        allowNull: true,
     };
 
     /**
@@ -112,15 +103,6 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     public static ValidEndDtm?: ModelAttributeColumnOptions = {
         type: DataTypes.DATE,
         field: "valid_end_dtm",
-        allowNull: false,
-    };
-
-    /**
-     * @name Transactions
-     */
-    public static Transactions?: ModelAttributeColumnOptions = {
-        type: `${DataTypes.JSONB} []`,
-        field: "transactions",
         allowNull: false,
     };
 
@@ -146,10 +128,8 @@ export default class VoucherModel extends BaseModel<IVoucher> {
         CreatedDtm: VoucherModel.CreatedDtm,
         Status: VoucherModel.Status,
         Locations: VoucherModel.Locations,
-        Items: VoucherModel.Items,
         ValidStartDtm: VoucherModel.ValidStartDtm,
         ValidEndDtm: VoucherModel.ValidEndDtm,
-        Transactions: VoucherModel.Transactions,
     };
 
     /**
@@ -181,6 +161,9 @@ export default class VoucherModel extends BaseModel<IVoucher> {
         }, {
             fields: [VoucherModel.Status.field],
             type: "SPATIAL",
+        }, {
+            fields: [VoucherModel.VoucherCode.field, VoucherModel.BatchNo.field],
+            type: "FULLTEXT",
         }];
     }
 }

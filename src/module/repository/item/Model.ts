@@ -33,6 +33,15 @@ export default class ItemModel extends BaseModel<IStore> {
     };
 
     /**
+     * @name ItemIndex
+     */
+    public static ItemIndex?: ModelAttributeColumnOptions = {
+        type: DataTypes.STRING,
+        field: "item_index",
+        allowNull: false,
+    };
+
+    /**
      * @name Quantity
      */
     public static Quantity?: ModelAttributeColumnOptions = {

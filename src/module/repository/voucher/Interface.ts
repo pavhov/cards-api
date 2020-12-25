@@ -5,16 +5,16 @@ import TransactionInterface from "../transaction/Interface";
  * @name Interface
  */
 export default interface Interface {
-    VoucherId: string;
+    VoucherId?: string;
     ClientId: string;
     BatchNo: string;
     VoucherCode: string;
     QrSrc: string;
-    CreatedDtm: Date;
+    CreatedDtm?: Date;
     Status: string;
     Locations: string[];
-    Items: ItemInterface[];
+    Items?: ItemInterface[];
     ValidStartDtm: any;
     ValidEndDtm: any;
-    Transactions: TransactionInterface[];
+    Transactions?: TransactionInterface[];
 }

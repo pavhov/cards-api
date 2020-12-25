@@ -1,4 +1,6 @@
+import cpath      from "path";
 import Koa        from "koa";
+import Send       from "koa-send";
 import Router     from "koa-router";
 import BodyParser from "koa-bodyparser";
 
@@ -17,6 +19,11 @@ export function KoaApi(_options: { path: string | string[] }) {
     koa[key].app = new Koa;
     return function <T extends { new(...args: any[]): {} }>(constructor: T) {
         setImmediate(() => {
+            koa[key].app.use((ctx, next) => Send(ctx, ctx.path, {
+                root: cpath.join(process.cwd(), "public"),
+                extensions: Params["static_extensions"],
+                immutable: true,
+            }).catch(() => next()));
             koa[key].app.use(ExpressionHandler);
             koa[key].app.use(BodyParser());
             constructor.prototype.koa = koa[key].app as any;
