@@ -32,7 +32,7 @@ export default class MysqlDataSource extends CModule {
             username: Params["db_user"],
             password: Params["db_pass"],
             database: Params["db_name"],
-            logging: debug,
+            logging: sql => debug(sql.toString()),
             omitNull: true,
             define: {
                 timestamps: false,

@@ -45,6 +45,7 @@ export default class AuthPresenter {
             await context.assert(res, 400, "wrong");
             context.body = res;
         } catch (e) {
+            console.log(e);
             await context.throw(400, e.message);
         }
 

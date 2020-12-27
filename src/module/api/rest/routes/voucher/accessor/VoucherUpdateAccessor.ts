@@ -1,9 +1,10 @@
 import { Context, Next } from "koa";
+import { parse }         from "query-string";
 
 /**
- * @name VoucherCreateAccessor
+ * @name VoucherListAccessor
  */
-export class VoucherCreateAccessor {
+export class VoucherUpdateAccessor {
     /**
      * @name _options
      * @private
@@ -11,7 +12,7 @@ export class VoucherCreateAccessor {
     private readonly _options: any;
 
     /**
-     * @name UserPhotoAccessor
+     * @name VoucherListAccessor
      */
     constructor() {
     }
@@ -27,18 +28,17 @@ export class VoucherCreateAccessor {
             await context.throw(400, `Access denied !`);
         }
         context.state.auth = context.state.body;
-        const {body: {batch_no, locations, items, valid_start_dtm, valid_end_dtm}} = context.request;
+        context.request.query = parse(context.request.querystring);
+        const {body: {locations = null}} = context.request;
 
-        if (!items || !valid_start_dtm || !valid_end_dtm) {
-            await context.throw(400, `Required on body "items", "valid_start_dtm", "valid_end_dtm" !`);
-        }
-
-        context.state.body = {
-            BatchNo: batch_no,
-            Locations: locations,
-            items: items,
-            ValidStartDtm: valid_start_dtm,
-            ValidEndDtm: valid_end_dtm,
+        context.state.conditions = {
+            filter: {
+                VoucherId: context.params.id,
+                ClientId: context.state.token.client.ClientId
+            }
+        };
+        context.state.values = {
+            Locations: locations
         };
         await next();
     }

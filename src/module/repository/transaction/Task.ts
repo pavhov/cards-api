@@ -1,10 +1,11 @@
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
-import Model                                                           from "./Model";
-import { FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import ClientModel                                                     from "./../client/Model";
-import VoucherModel                                                    from "./../voucher/Model";
+import Model                                                                                          from "./Model";
+import { CreateOptions, DestroyOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import ClientModel                                                                                    from "./../client/Model";
+import VoucherModel                                                                                   from "./../voucher/Model";
+import { Transaction }                                                                                from "sequelize";
 
 /**
  * @name Task
@@ -77,6 +78,23 @@ export default class Task extends DBStory {
      */
     public updateOne(values: Partial<Model["_attributes"]>, options: UpdateOptions<Model["_attributes"]>): Promise<[number, Model[]]> {
         return Model.update(values, options);
+    }
+
+    /**
+     * @name createOne
+     * @param values
+     * @param options
+     */
+    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        return await Model.create(values, options);
+    }
+
+    /**
+     * @name removeOne
+     * @param values
+     */
+    public removeOne(values: DestroyOptions<Model["_attributes"]>): Promise<number> {
+        return Model.destroy(values);
     }
 
     /**

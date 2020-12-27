@@ -1,9 +1,10 @@
 import { Context, Next } from "koa";
+import { parse }         from "query-string";
 
 /**
- * @name VoucherCreateAccessor
+ * @name VoucherListAccessor
  */
-export class VoucherCreateAccessor {
+export class VoucherVoidAccessor {
     /**
      * @name _options
      * @private
@@ -11,7 +12,7 @@ export class VoucherCreateAccessor {
     private readonly _options: any;
 
     /**
-     * @name UserPhotoAccessor
+     * @name VoucherListAccessor
      */
     constructor() {
     }
@@ -23,23 +24,11 @@ export class VoucherCreateAccessor {
      * @protected
      */
     protected async before(context: Context, next: Next): Promise<any> {
-        if (!context.state.scopes.includes("voucher.write")) {
+        if (!context.state.scopes.includes("voucher.void")) {
             await context.throw(400, `Access denied !`);
         }
         context.state.auth = context.state.body;
-        const {body: {batch_no, locations, items, valid_start_dtm, valid_end_dtm}} = context.request;
 
-        if (!items || !valid_start_dtm || !valid_end_dtm) {
-            await context.throw(400, `Required on body "items", "valid_start_dtm", "valid_end_dtm" !`);
-        }
-
-        context.state.body = {
-            BatchNo: batch_no,
-            Locations: locations,
-            items: items,
-            ValidStartDtm: valid_start_dtm,
-            ValidEndDtm: valid_end_dtm,
-        };
         await next();
     }
 

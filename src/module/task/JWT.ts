@@ -30,6 +30,7 @@ export default class JWT {
         } catch (e: unknown | NotBeforeError | JsonWebTokenError | TokenExpiredError) {
             if (e instanceof TokenExpiredError) {
                 payload = jwt.decode(token, {complete: true, json: true});
+                payload = payload.payload;
             } else {
                 error(e);
             }

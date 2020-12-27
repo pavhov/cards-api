@@ -1,10 +1,20 @@
 import { v4 }                                               from "uuid";
-import { DataTypes, Model as BaseModel }                    from "sequelize";
+import { DataTypes, Model as BaseModel, literal }           from "sequelize";
 import { ModelAttributeColumnOptions, ModelIndexesOptions } from "sequelize/types/lib/model";
 
 import IVoucher from "./Interface";
 
 export default class VoucherModel extends BaseModel<IVoucher> {
+    /**
+     * @name modelName
+     */
+    public static modelName = "Voucher";
+
+    /**
+     * @name tableName
+     */
+    public static tableName = "voucher";
+
     /**
      * @name VoucherId
      */
@@ -89,6 +99,15 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     };
 
     /**
+     * @name SearchVector
+     */
+    public static SearchVector?: ModelAttributeColumnOptions = {
+        type: "TSVECTOR",
+        field: "search_vector",
+        allowNull: true,
+    };
+
+    /**
      * @name ValidStartDtm
      */
     public static ValidStartDtm?: ModelAttributeColumnOptions = {
@@ -107,16 +126,6 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     };
 
     /**
-     * @name modelName
-     */
-    public static modelName = "Voucher";
-
-    /**
-     * @name tableName
-     */
-    public static tableName = "voucher";
-
-    /**
      * @name _fieldSet
      */
     private static _fieldSet = {
@@ -128,6 +137,7 @@ export default class VoucherModel extends BaseModel<IVoucher> {
         CreatedDtm: VoucherModel.CreatedDtm,
         Status: VoucherModel.Status,
         Locations: VoucherModel.Locations,
+        SearchVector: VoucherModel.SearchVector,
         ValidStartDtm: VoucherModel.ValidStartDtm,
         ValidEndDtm: VoucherModel.ValidEndDtm,
     };
@@ -162,8 +172,11 @@ export default class VoucherModel extends BaseModel<IVoucher> {
             fields: [VoucherModel.Status.field],
             type: "SPATIAL",
         }, {
-            fields: [VoucherModel.VoucherCode.field, VoucherModel.BatchNo.field],
+            fields: [VoucherModel.SearchVector.field],
             type: "FULLTEXT",
+            using: "GIN",
+            parser: "blank"
+            // parser: "hword_part"
         }];
     }
 }

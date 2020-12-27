@@ -51,7 +51,6 @@ export class RefreshTokenWithClientAccessor {
             });
             context.state.token = client && client.toJSON();
         } catch (e) {
-            error(e);
             await context.throw(404, new Error("NotFound"));
             return;
         }

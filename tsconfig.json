@@ -9,9 +9,9 @@
     "outDir": "./out",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "sourceMap": true,
     "esModuleInterop": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "inlineSourceMap": true
   },
   "files": [
     "src/Main.ts"

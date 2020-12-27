@@ -3,6 +3,7 @@ import { IDebugger } from "debug";
 import { json5 }       from "./json5/Parser";
 import LoggerInterface from "./../interfaces/Logger";
 import Params          from "./../../lib/utils/config/Params";
+import { json }        from "./json/Parser";
 
 const wd = process.cwd();
 
@@ -10,7 +11,7 @@ const wd = process.cwd();
  * @name logger
  * @param args
  */
-const logger: IDebugger = (...args: any[]) => process.stdout.write(`${json5.stringify(args)} \n`); // Debug("");
+const logger: IDebugger = (...args: any[]) => process.stdout.write(`${json5.stringify(args, null, 0)} \n`); // Debug("");
 
 /**
  * @name Log
@@ -50,7 +51,7 @@ const logMessage = (level: LoggerInterface["level"], moduleFile: string, message
     if (hasError) {
         level = "error";
         const stackSlice = message[0].stack.split("\n");
-        const stack = JSON.stringify(stackSlice.splice(1, 2))
+        const stack = json5.stringify(stackSlice.splice(1, 2))
                           .replace(new RegExp(" {2}", "gm"), "")
                           .replace(/\\/g, "/");
         result = {

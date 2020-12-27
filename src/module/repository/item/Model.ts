@@ -65,6 +65,7 @@ export default class ItemModel extends BaseModel<IStore> {
      */
     private static _fieldSet = {
         ItemId: ItemModel.ItemId,
+        ItemIndex: ItemModel.ItemIndex,
         VoucherId: ItemModel.VoucherId,
         Quantity: ItemModel.Quantity,
     };
@@ -81,6 +82,9 @@ export default class ItemModel extends BaseModel<IStore> {
      */
     static get indexes(): ModelIndexesOptions[] {
         return [{
+            fields: [ItemModel.ItemIndex.field],
+            type: "UNIQUE",
+        }, {
             fields: [ItemModel.ItemId.field],
             type: "UNIQUE",
         }, {

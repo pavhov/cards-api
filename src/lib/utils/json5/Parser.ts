@@ -10,7 +10,7 @@ const parse = (text: string, reviver?: (this: any, key: string, value: any) => a
     try {
         return json.parse(text, reviver);
     } catch (e) {
-        // error("JSON.parse:error", e);
+        console.error("JSON5.parse:error", e);
     }
     return null;
 };
@@ -25,7 +25,7 @@ const stringify = (value: any, replacer?: (this: any, key: string, value: any) =
     try {
         return json.stringify(value, replacer, space);
     } catch (e) {
-        // error("JSON.stringify:error", e);
+        console.error("JSON5.stringify:error", e);
     }
     return null;
 };

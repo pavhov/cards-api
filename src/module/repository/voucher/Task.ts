@@ -1,12 +1,14 @@
+import { BulkCreateOptions, InstanceUpdateOptions, literal, Transaction }                                          from "sequelize";
+import { CreateOptions, DestroyOptions, FindOptions, InitOptions, ModelStatic, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
+import { HookReturn }                                                                                              from "sequelize/types/lib/hooks";
+
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
 
-import Model                                                                          from "./Model";
-import { CreateOptions, FindOptions, ModelStatic, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import ClientModel                                                                    from "./../client/Model";
-import TransactionModel                                                               from "../transaction/Model";
-import ItemModel                                                                      from "../item/Model";
-import { Transaction }                                                                from "sequelize";
+import Model            from "./Model";
+import ClientModel      from "./../client/Model";
+import TransactionModel from "../transaction/Model";
+import ItemModel        from "../item/Model";
 
 /**
  * @name Task
@@ -29,7 +31,11 @@ export default class Task extends DBStory {
             timestamps: true,
             createdAt: "created_at",
             updatedAt: "updated_at",
-        } as any;
+            hooks: {
+                afterCreate: this.afterCreate,
+                afterUpdate: this.afterUpdate,
+            },
+        } as InitOptions<Model>;
 
         this._attributes = this._model.fieldSet;
     }
@@ -46,11 +52,30 @@ export default class Task extends DBStory {
         return Task._instance;
     }
 
+
+    async afterCreate(attributes: Model, options: CreateOptions<Model["_attributes"]>): Promise<void> {
+        let val = `to_tsvector("${Model.tableName}"."${Model.VoucherCode.field}" `;
+        if (attributes.getDataValue("BatchNo")) {
+            val += `|| ' ' || "${Model.tableName}"."${Model.BatchNo.field}"`;
+        }
+        val += ")";
+        await Model.update({"SearchVector": literal(val)}, {...options, where: {VoucherId: (attributes as any).VoucherId}, hooks: false});
+    }
+
+    async afterUpdate(instance: Model, options: InstanceUpdateOptions<Model["_attributes"]>): Promise<void> {
+        let val = `to_tsvector("${Model.tableName}"."${Model.VoucherCode.field}" `;
+        if (instance.getDataValue("BatchNo")) {
+            val += `|| ' ' || "${Model.tableName}"."${Model.BatchNo.field}"`;
+        }
+        val += ")";
+        await Model.update({"SearchVector": literal(val)}, {...options, where: {VoucherId: (instance as any).VoucherId}, hooks: false});
+    }
+
     /**
      * @name getOne
      * @param options
      */
-    public getOne<M extends Model>(options: NonNullFindOptions<M["_attributes"]>): Promise<Model> {
+    public getOne(options: NonNullFindOptions<Model["_attributes"]>): Promise<Model> {
         return Model.findOne({
             ...options,
             raw: false,
@@ -73,12 +98,33 @@ export default class Task extends DBStory {
     }
 
     /**
+     * @name getListAndCount
+     * @param options
+     */
+    public getListAndCount<M extends Model>(options?: FindOptions<M["_attributes"]>): Promise<{ rows: Model[]; count: number }> {
+        return Model.findAndCountAll({
+            ...options,
+            raw: false,
+            nest: false,
+            mapToModel: false,
+        } as any);
+    }
+
+    /**
      * @name updateOne
      * @param values
      * @param options
      */
     public updateOne(values: Partial<Model["_attributes"]>, options: UpdateOptions<Model["_attributes"]>): Promise<[number, Model[]]> {
         return Model.update(values, options);
+    }
+
+    /**
+     * @name removeOne
+     * @param values
+     */
+    public removeOne(values: DestroyOptions<Model["_attributes"]>): Promise<number> {
+        return Model.destroy(values);
     }
 
     /**
@@ -121,6 +167,32 @@ export default class Task extends DBStory {
             where: conditions,
             as: "client",
         };
+    }
+
+    /**
+     * @name items
+     * @param conditions
+     */
+    public items(conditions?: ModelStatic<ItemModel>) {
+        return {
+            model: ItemModel,
+            required: false,
+            where: conditions,
+            as: "items",
+        } as any;
+    }
+
+    /**
+     * @name transactions
+     * @param conditions
+     */
+    public transactions(conditions?: ModelStatic<TransactionModel>) {
+        return {
+            model: TransactionModel,
+            required: false,
+            where: conditions,
+            as: "transactions",
+        } as any;
     }
 
     /**

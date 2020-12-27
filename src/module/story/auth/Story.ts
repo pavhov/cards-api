@@ -65,8 +65,6 @@ export default class Story {
                     refresh_token: client.token.RefreshToken,
                     refresh_token_expires_in: ms(client.token.RefreshTokenExpiresIn.getTime() - Date.now()),
                 };
-            } else {
-                throw new Error("JWTExpired");
             }
         }
 
@@ -80,6 +78,7 @@ export default class Story {
 
         const result = {access_token, expires_in: ms(expires_in), refresh_token, refresh_token_expires_in: ms(refresh_token_expires_in)};
         await this.createClient({
+            ClientId: client?.ClientId,
             ClientIndex: body.clientId,
             ClientSecret: body.clientSecret,
             Scopes: body.scopes,
@@ -97,7 +96,7 @@ export default class Story {
     public async Refresh(header: { Authorization, Timestamp, }, body: { grant_type, refresh_token, }, token: TokenInterface) {
         const expires_in = ms("2h");
 
-        let newTokenSecret: Buffer | any = await randomBytesAsync(token.RefreshToken.length);
+        let newTokenSecret: Buffer | any = await randomBytesAsync(token.client.ClientSecret.length);
         newTokenSecret = newTokenSecret.toString("hex");
         const jwt = new JWT(newTokenSecret, token.AccessTokenSecret || token.client.ClientSecret, {expiresIn: ms(expires_in)});
         const refreshedToken = jwt.refresh(token.AccessToken, {
@@ -106,7 +105,8 @@ export default class Story {
             verify: {
                 algorithms: ["HS256"],
                 audience: token.client.Scopes.join("|"),
-            }
+            },
+            mutatePayload: false,
         });
         const updateResult = await this.tasks.Token.updateOne({
             AccessToken: refreshedToken,
@@ -138,10 +138,10 @@ export default class Story {
     private async createClient(clientData: ClientInterface, tokenData: any) {
         const tr = await this.tasks.Client.transaction();
         try {
-            const client = await this.tasks.Client.createOne(clientData, {transaction: tr});
-
+            let result = await this.tasks.Client.upsertOne(clientData, {transaction: tr});
+            const client = result[0] && result[0].toJSON();
             const [ExpiresIn, RefreshTokenExpiresIn] = [
-                moment().add(tokenData.expires_in).utc().toDate(), moment().add(tokenData.refresh_token_expires_in).utc().toDate()
+                moment().add(ms(tokenData.expires_in)).utc().toDate(), moment().add(ms(tokenData.refresh_token_expires_in)).utc().toDate()
             ];
 
             const token = await this.tasks.Token.createOne({

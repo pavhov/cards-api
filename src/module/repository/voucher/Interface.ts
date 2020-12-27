@@ -12,9 +12,10 @@ export default interface Interface {
     QrSrc: string;
     CreatedDtm?: Date;
     Status: string;
+    SearchVector?: any;
     Locations: string[];
-    Items?: ItemInterface[];
+    items?: ItemInterface[];
     ValidStartDtm: any;
     ValidEndDtm: any;
-    Transactions?: TransactionInterface[];
+    transactions?: TransactionInterface[];
 }

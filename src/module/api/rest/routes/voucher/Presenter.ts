@@ -1,13 +1,16 @@
 import { Context, Next }                    from "koa";
 import { Get, Patch, Post, Presenter, Use } from "../../../../../lib/decorators/Koa";
 
-import { AuthAccessor }          from "../auth/accessor/AuthAccessor";
-import { ClientAccessor }        from "../auth/accessor/ClientAccessor";
 import { VoucherCreateAccessor } from "./accessor/VoucherCreateAccessor";
 
-import VoucherStory       from "../../../../story/voucher/Story";
-import { BearerAccessor } from "../auth/accessor/BearerAccessor";
-import { JWTAccessor }    from "../auth/accessor/JWTAccessor";
+import VoucherStory              from "../../../../story/voucher/Story";
+import { BearerAccessor }        from "../auth/accessor/BearerAccessor";
+import { JWTAccessor }           from "../auth/accessor/JWTAccessor";
+import { VoucherListAccessor }   from "./accessor/VoucherListAccessor";
+import { VoucherOneAccessor }    from "./accessor/VoucherOneAccessor";
+import { VoucherRedeemAccessor } from "./accessor/VoucherRedeemAccessor";
+import { VoucherUpdateAccessor } from "./accessor/VoucherUpdateAccessor";
+import { VoucherVoidAccessor }   from "./accessor/VoucherVoidAccessor";
 
 /**
  * @name AuthPresenter
@@ -32,7 +35,7 @@ export default class VoucherPresenter {
     }
 
     /**
-     * @name "/"
+     * @name "/create"
      * @param context
      * @param next
      */
@@ -48,7 +51,8 @@ export default class VoucherPresenter {
             context.status = 201;
             context.body = res;
         } catch (e) {
-            await context.throw(400, e);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
@@ -61,7 +65,7 @@ export default class VoucherPresenter {
     @Get()
     @Use(BearerAccessor)
     @Use(JWTAccessor)
-    @Use(VoucherCreateAccessor)
+    @Use(VoucherListAccessor)
     async "/"(context: Context, next: Next) {
         try {
             const {conditions} = context.state;
@@ -69,7 +73,8 @@ export default class VoucherPresenter {
             await context.assert(res, 400, "wrong");
             context.body = res;
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
@@ -80,17 +85,18 @@ export default class VoucherPresenter {
      * @param next
      */
     @Get()
-    @Use(AuthAccessor)
-    @Use(ClientAccessor)
+    @Use(BearerAccessor)
+    @Use(JWTAccessor)
+    @Use(VoucherOneAccessor)
     async "/:id"(context: Context, next: Next) {
         try {
-            const {client} = context.state;
-            const res = {};
-
-            await context.assert(res, 400, "wrong");
+            const {conditions} = context.state;
+            const res = await this.stories.Voucher.one({...conditions.filter, VoucherId: context.params.id});
+            await context.assert(res, 400, "Empty");
             context.body = res;
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
@@ -101,17 +107,16 @@ export default class VoucherPresenter {
      * @param next
      */
     @Patch()
-    @Use(AuthAccessor)
-    @Use(ClientAccessor)
+    @Use(BearerAccessor)
+    @Use(JWTAccessor)
+    @Use(VoucherRedeemAccessor)
     async "/voucher/:id/redeemed"(context: Context, next: Next) {
         try {
-            const {client} = context.state;
-            const res = {};
-
-            await context.assert(res, 204, "wrong");
-            context.body = res;
+            await this.stories.Voucher.redeemed(context.params.id);
+            context.status = 204;
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
@@ -122,17 +127,16 @@ export default class VoucherPresenter {
      * @param next
      */
     @Patch()
-    @Use(AuthAccessor)
-    @Use(ClientAccessor)
+    @Use(BearerAccessor)
+    @Use(JWTAccessor)
+    @Use(VoucherUpdateAccessor)
     async "/:id/location"(context: Context, next: Next) {
         try {
-            const {client} = context.state;
-            const res = {};
-
-            await context.assert(res, 204, "wrong");
-            context.body = res;
+            await this.stories.Voucher.location(context.state.conditions.filter, context.state.values.Locations);
+            context.status = 204;
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
@@ -143,20 +147,18 @@ export default class VoucherPresenter {
      * @param next
      */
     @Patch({path: "/:id"})
-    @Use(AuthAccessor)
-    @Use(ClientAccessor)
+    @Use(BearerAccessor)
+    @Use(JWTAccessor)
+    @Use(VoucherVoidAccessor)
     async "/:id/remove"(context: Context, next: Next) {
         try {
-            const {client} = context.state;
-            const res = {};
-
-            await context.assert(res, 204, "wrong");
-            context.body = res;
+            const {conditions} = context.state;
+            await this.stories.Voucher.delete(context.params.id);
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }
-
 
 }

@@ -4,7 +4,7 @@ import { parse }         from "query-string";
 /**
  * @name VoucherListAccessor
  */
-export class VoucherListAccessor {
+export class VoucherRedeemAccessor {
     /**
      * @name _options
      * @private
@@ -24,20 +24,9 @@ export class VoucherListAccessor {
      * @protected
      */
     protected async before(context: Context, next: Next): Promise<any> {
-        if (!context.state.scopes.includes("voucher.read")) {
+        if (!context.state.scopes.includes("voucher.redeem")) {
             await context.throw(400, `Access denied !`);
         }
-        context.state.auth = context.state.body;
-        context.request.query = parse(context.request.querystring);
-        const {query: {limit = 50, skip = 0}, body: {search = null, filter, sort}} = context.request;
-
-        context.state.conditions = {
-            limit: limit,
-            skip: skip,
-            search: search,
-            filter: {...filter, ClientId: context.state.token.client.ClientId},
-            sort: sort,
-        };
         await next();
     }
 

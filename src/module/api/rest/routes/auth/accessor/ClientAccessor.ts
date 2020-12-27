@@ -38,24 +38,19 @@ export class ClientAccessor {
      * @protected
      */
     protected async before(context: Context, next: Next): Promise<any> {
-        try {
-            const client = await this.stories.Auth.tasks.Client.getOne({
-                rejectOnEmpty: false,
-                where: {
-                    ClientIndex: context.state.body.clientId,
+        const client = await this.stories.Auth.tasks.Client.getOne({
+            rejectOnEmpty: false,
+            where: {
+                ClientIndex: context.state.body.clientId,
+            },
+            include: this.stories.Auth.tasks.Client.token({
+                RefreshTokenExpiresIn: {
+                    [sequelize.Op.gt]: moment().utc().toDate(),
                 },
-                include: this.stories.Auth.tasks.Client.token({
-                    RefreshTokenExpiresIn: {
-                        [sequelize.Op.gt]: moment().utc().toDate(),
-                    },
-                }),
-            });
-            context.state.client = client && client.toJSON();
-        } catch (e) {
-            error(e);
-            await context.throw(404, new Error("NotFound"));
-            return;
-        }
+            }),
+        });
+        // await context.assert(client, 401, `Unauthorized!`);
+        context.state.client = client && client.toJSON();
         await next();
     }
 
