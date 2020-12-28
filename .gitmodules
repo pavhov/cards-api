@@ -1,3 +1,0 @@
-[submodule "common"]
-	path = common
-	url = git@gitlab.4fv.pl:voucher-module/common.git

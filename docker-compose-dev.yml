@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  v-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5001:5001
+    environment:
+      app_logging: info
+      api_http_ip: 0.0.0.0
+      api_http_port: 5001
+      db_host: 192.168.88.248
+      port: 5432
+      user: postgres
+      pass: mysecurepassword
+      name: voucher_db
+      static_url: http://192.168.88.248:5001/qr
+    volumes:
+      - v-service-data:/build/public
+
+volumes:
+  v-service-data:
+    driver: local

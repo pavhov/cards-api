@@ -25,7 +25,7 @@ export class VoucherRedeemAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         if (!context.state.scopes.includes("voucher.redeem")) {
-            await context.throw(400, `Access denied !`);
+            await context.throw(401, `Access denied!`);
         }
         await next();
     }

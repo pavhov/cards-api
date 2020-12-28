@@ -6,7 +6,7 @@ import IStore from "./Interface";
 
 export default class ClientModel extends BaseModel<IStore> {
     /**
-     * @name Id
+     * @name ClientId
      */
     public static ClientId?: ModelAttributeColumnOptions = {
         type: DataTypes.UUID,

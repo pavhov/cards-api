@@ -1,5 +1,4 @@
 import { Context, Next } from "koa";
-import { parse }         from "query-string";
 
 /**
  * @name VoucherListAccessor
@@ -25,7 +24,7 @@ export class VoucherVoidAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         if (!context.state.scopes.includes("voucher.void")) {
-            await context.throw(400, `Access denied !`);
+            await context.throw(401, `Access denied!`);
         }
         context.state.auth = context.state.body;
 

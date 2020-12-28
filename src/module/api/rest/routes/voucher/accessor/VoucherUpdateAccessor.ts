@@ -25,10 +25,9 @@ export class VoucherUpdateAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         if (!context.state.scopes.includes("voucher.write")) {
-            await context.throw(400, `Access denied !`);
+            await context.throw(401, `Access denied!`);
         }
         context.state.auth = context.state.body;
-        context.request.query = parse(context.request.querystring);
         const {body: {locations = null}} = context.request;
 
         context.state.conditions = {
