@@ -3,7 +3,6 @@ import { IDebugger } from "debug";
 import { json5 }       from "./json5/Parser";
 import LoggerInterface from "./../interfaces/Logger";
 import Params          from "./../../lib/utils/config/Params";
-import { json }        from "./json/Parser";
 
 const wd = process.cwd();
 

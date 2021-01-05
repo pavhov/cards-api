@@ -4,7 +4,7 @@ import DBStory          from "./../../../lib/abstract/DBStory";
 import Model                                                                          from "./Model";
 import { CreateOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
 import ClientModel                                                                    from "./../client/Model";
-import { Transaction }                                                                from "sequelize";
+import { Transaction, UpsertOptions }                                                 from "sequelize";
 
 /**
  * @name Task
@@ -25,8 +25,8 @@ export default class Task extends DBStory {
         this._model = Model;
         this._options = {
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            createdAt: "created_dtm",
+            updatedAt: false,
         } as any;
 
         this._attributes = this._model.fieldSet;
@@ -84,12 +84,8 @@ export default class Task extends DBStory {
      * @param values
      * @param options
      */
-    public async upsertOne<M extends Model>(values: Partial<Model["_attributes"]>, options: NonNullFindOptions<M["_attributes"]>): Promise<Model | [number, Model[]]> {
-        const obj = await this.getOne({rejectOnEmpty: true, where: options.where});
-        if (obj) {
-            return await this.updateOne(values, {where: options.where});
-        }
-        return await this.createOne({...options.where, ...values} as any);
+    public upsertOne(values: Model["_creationAttributes"], options: UpsertOptions<Model["_attributes"]>): Promise<[Model, boolean]> {
+        return Model.upsert(values, options);
     }
 
     /**

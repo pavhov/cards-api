@@ -1,5 +1,5 @@
 import configMap from "./Map";
-import { json }  from "./../json/Parser";
+import { json5 } from "../json5/Parser";
 
 const Params: any = {
     params: {} as any
@@ -40,7 +40,7 @@ const set = (configs: any, name: string, joinedKey: string) => {
     if (data) {
         configs[name] = data;
     }
-    Params.params[joinedKey] = (json.parse(configs) || configs)[name];
+    Params.params[joinedKey] = (json5.parse(configs) || configs)[name];
 };
 
 /**

@@ -26,8 +26,8 @@ export default class Task extends DBStory {
         this._model = Model;
         this._options = {
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            createdAt: "created_dtm",
+            updatedAt: false,
         } as any;
 
         this._attributes = this._model.fieldSet;

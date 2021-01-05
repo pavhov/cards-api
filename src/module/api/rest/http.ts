@@ -1,10 +1,10 @@
 import Koa from "koa";
 
 import CModule       from "./../../../lib/abstract/CModule";
-import { ModuleInt } from "./../../../lib/decorators/CModule";
-import Params        from "./../../../lib/utils/config/Params";
-import { KoaApi }    from "./../../../lib/decorators/Koa";
-import { info }      from "./../../../lib/utils/Logger";
+import { ModuleInt } from "../../../lib/decorators/CModule";
+import Params     from "./../../../lib/utils/config/Params";
+import { KoaApi } from "../../../lib/decorators/Koa";
+import { info }   from "../../../lib/utils/Logger";
 
 /**
  * @name Http

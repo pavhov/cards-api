@@ -1,25 +1,26 @@
-import fs              from "fs";
-import util            from "util";
-import * as path       from "path";
-import qrcode          from "qrcode";
-import nanoid          from "nanoid";
+import fs                           from "fs";
+import util                         from "util";
+import * as path                    from "path";
+import qrcode                       from "qrcode";
+import nanoid                       from "nanoid";
 import moment                       from "moment";
 import { literal, Op, Transaction } from "sequelize";
 import querystring                  from "querystring";
-import { FindOptions } from "sequelize/types/lib/model";
+import { FindOptions }              from "sequelize/types/lib/model";
 
 import Params   from "../../../lib/utils/config/Params";
 import { json } from "../../../lib/utils/json/Parser";
 
 import VoucherModel from "../../repository/voucher/Model";
 
-import ItemTask    from "../../repository/item/Task";
-import VoucherTask from "../../repository/voucher/Task";
+import ItemTask        from "../../repository/item/Task";
+import VoucherTask     from "../../repository/voucher/Task";
 import TransactionTask from "../../repository/transaction/Task";
 
 import ItemInterface    from "../../repository/item/Interface";
 import ClientInterface  from "../../repository/client/Interface";
 import VoucherInterface from "../../repository/voucher/Interface";
+import TransactionModel from "../../repository/transaction/Model";
 
 const writeFile = util.promisify(fs.writeFile);
 
@@ -76,7 +77,10 @@ export default class Story {
             order: order,
         });
 
-        let [prev, next] = [parseInt(conditions.skip) - parseInt(conditions.limit), parseInt(conditions.skip) + parseInt(conditions.limit)];
+        let [prev, next] = [
+            parseInt(conditions.skip) - parseInt(conditions.limit),
+            parseInt(conditions.skip) + parseInt(conditions.limit)
+        ];
         [prev, next] = [(prev >= 0 && prev || 0), (next >= 0 && next || 0)];
 
         return {
@@ -97,7 +101,7 @@ export default class Story {
                         voucher_code: target[p].VoucherCode,
                         batch_no: target[p].BatchNo,
                         qr_src: target[p].QrSrc,
-                        created_dtm: target[p].created_dtm?.getTime(),
+                        created_dtm: target[p].CreatedDtm?.getTime(),
                         status: target[p].Status,
                     } || target[p];
                 }
@@ -125,7 +129,8 @@ export default class Story {
             batch_no: voucher.BatchNo,
             voucher_code: voucher.VoucherCode,
             qr_src: voucher.QrSrc,
-            created_dtm: voucher.CreatedDtm,
+            created_dtm: voucher.CreatedDtm?.getTime(),
+            // created_dtm: voucher.CreatedDtm,
             status: voucher.Status,
             locations: voucher.Locations,
             valid_start_dtm: voucher.ValidStartDtm,
@@ -143,63 +148,139 @@ export default class Story {
     }
 
     public async create(client: ClientInterface, body: VoucherInterface) {
-        const voucherCode = this.tasks.VoucherCode();
-        const tr = await this.tasks.Voucher.transaction();
+        try {
+            const voucherCode = this.tasks.VoucherCode();
+            const tr = await this.tasks.Voucher.transaction();
 
-        const newVoucher = await this.tasks.Voucher.createOne({
-            ClientId: client.ClientId,
-            BatchNo: body.BatchNo,
-            Locations: body.Locations,
-            QrSrc: await this.generateQRCode({
-                version: 1,
-                voucher_code: voucherCode,
-                items: body.items,
-                valid_start_dtm: body.ValidStartDtm,
-                valid_end_dam: body.ValidEndDtm,
-            }),
-            Status: "PENDING",
-            ValidEndDtm: body.ValidEndDtm,
-            ValidStartDtm: body.ValidStartDtm,
-            VoucherCode: voucherCode,
-        }, {transaction: tr});
-        const items = body.items.map((value: any) => ({ItemIndex: value.item_id, Quantity: value.quantity, VoucherId: newVoucher.VoucherId}));
-        await this.tasks.Item.createMany(items, {transaction: tr});
-        await tr.commit();
+            const newVoucher = await this.tasks.Voucher.createOne({
+                ClientId: client.ClientId,
+                BatchNo: body.BatchNo,
+                Locations: body.Locations,
+                QrSrc: await this.generateQRCode({
+                    version: 1,
+                    voucher_code: voucherCode,
+                    items: body.items,
+                    valid_start_dtm: body.ValidStartDtm,
+                    valid_end_dam: body.ValidEndDtm,
+                }),
+                Status: "PENDING",
+                ValidEndDtm: body.ValidEndDtm,
+                ValidStartDtm: body.ValidStartDtm,
+                VoucherCode: voucherCode,
+            }, {transaction: tr});
+            const items = body.items.map((value: any) => ({
+                ItemIndex: value.item_id,
+                Quantity: value.quantity,
+                VoucherId: newVoucher.VoucherId
+            }));
+            await this.tasks.Item.createMany(items, {transaction: tr});
+            await tr.commit();
 
-        return {
-            voucher_id: newVoucher.VoucherId,
-            voucher_code: newVoucher.VoucherCode,
-            qr_src: `${Params["static_url"]}/${newVoucher.QrSrc}`,
-            status: newVoucher.Status,
-        };
+            return {
+                voucher_id: newVoucher.VoucherId,
+                voucher_code: newVoucher.VoucherCode,
+                qr_src: `${Params["static_url"]}/${newVoucher.QrSrc}`,
+                status: newVoucher.Status,
+            };
+
+        } catch (e) {
+            console.log(e);
+        }
+
     }
 
-    public async update(conditions: any, values: any) {
-        await this.tasks.Voucher.updateOne(values, {where: conditions});
-    }
-
-    public async delete(id: string) {
-        await this.tasks.Voucher.updateOne({Status: "VOID"},{where: {VoucherId: id}})
+    public async void(id: string) {
+        const [num, vouchers] = await this.tasks.Voucher.updateOne({Status: "VOID"}, {where: {VoucherId: id, Status: {[Op.ne]: "VOID"}}, returning: true});
+        if (num) {
+            const voucher = vouchers[0] && vouchers[0].toJSON() as VoucherInterface;
+            if (voucher) {
+                await this.tasks.Transaction.createOne({
+                    BatchNo: voucher.BatchNo,
+                    ClientId: voucher.ClientId,
+                    StatusSnapshot: voucher.Status,
+                    VoucherId: voucher.VoucherId,
+                    VoucherCode: voucher.VoucherCode,
+                    ValidStartDtm: voucher.ValidStartDtm,
+                    ValidEndDtm: voucher.ValidEndDtm,
+                });
+            }
+        }
     }
 
     public async redeemed(id: string) {
-        const result = await this.tasks.Voucher.getOne({rejectOnEmpty: true, where: {VoucherId: id}});
-        const voucher = <VoucherInterface>result.toJSON();
-        // await this.tasks.Voucher.updateOne({Locations: locations}, {where: {VoucherId: id}});
-        await this.tasks.Transaction.createOne({
-            BatchNo: voucher.BatchNo,
-            ClientId: voucher.ClientId,
-            CreatedDtm: voucher.CreatedDtm,
-            StatusSnapshot: voucher.Status,
-            VoucherId: voucher.VoucherId,
-        });
+        const [num, vouchers] = await this.tasks.Voucher.updateOne({Status: "COMPLETED"}, {where: {VoucherId: id, Status: {[Op.ne]: "COMPLETED"}}, returning: true});
+        if (num) {
+            const voucher = vouchers[0] && vouchers[0].toJSON() as VoucherInterface;
+            if (voucher) {
+                await this.tasks.Transaction.createOne({
+                    BatchNo: voucher.BatchNo,
+                    ClientId: voucher.ClientId,
+                    StatusSnapshot: voucher.Status,
+                    VoucherId: voucher.VoucherId,
+                    VoucherCode: voucher.VoucherCode,
+                    ValidStartDtm: voucher.ValidStartDtm,
+                    ValidEndDtm: voucher.ValidEndDtm,
+                });
+            }
+        }
     }
 
     public async location(filter: any, locations: string[]) {
-        await this.tasks.Voucher.updateOne({Locations: locations}, {where: filter});
+        await this.tasks.Voucher.updateOne({Locations: locations}, {where: {...filter, Status: {[Op.ne]: "COMPLETED"}}});
     }
 
-    public async transactions() {
+    public async transactions(conditions) {
+        const where: FindOptions<TransactionModel["_attributes"]>["where"] = {};
+        const order: FindOptions<TransactionModel["_attributes"]>["order"] = [];
+
+        where.ClientId = conditions.filter.ClientId;
+        (conditions.search && (where.SearchVector = literal(`search_vector @@ to_tsquery('${conditions.search.replace(new RegExp(" ", "g"), " & ")}')`)));
+        (conditions.filter.status && (where.StatusSnapshot = conditions.filter.status));
+
+        if (conditions.filter.dtm) {
+            where.ValidStartDtm = {[Op.lte]: moment(conditions.filter.dtm.from).toDate()};
+            where.ValidEndDtm = {[Op.gte]: moment(conditions.filter.dtm.to).toDate()};
+        }
+        if (conditions.sort) {
+            order.push([conditions.sort.field || "TransactionId", conditions.sort.dir || "asc"]);
+        }
+
+        const result = await this.tasks.Transaction.getListAndCount({
+            offset: conditions.skip,
+            limit: conditions.limit,
+            where: where,
+            order: order,
+        });
+
+        let [prev, next] = [
+            parseInt(conditions.skip) - parseInt(conditions.limit),
+            parseInt(conditions.skip) + parseInt(conditions.limit)
+        ];
+        [prev, next] = [(prev >= 0 && prev || 0), (next >= 0 && next || 0)];
+
+        return {
+            total: result.count,
+            skip: parseInt(conditions.skip),
+            prevUrl: `/${Params["api_endpoint"]}/transaction?${querystring.stringify({
+                skip: prev,
+                limit: parseInt(conditions.limit),
+            })}`,
+            nextUrl: `/${Params["api_endpoint"]}/transaction?${querystring.stringify({
+                skip: next,
+                limit: parseInt(conditions.limit),
+            })}`,
+            results: new Proxy<TransactionModel[]>(result.rows, {
+                get(target: TransactionModel[], p: PropertyKey, _receiver: any): any {
+                    return typeof target[p] === "object" && {
+                        transaction_id: target[p].TransactionId,
+                        voucher_id: target[p].VoucherId,
+                        batch_no: target[p].BatchNo,
+                        created_dtm: target[p].CreatedDtm?.getTime(),
+                        status: target[p].StatusSnapshot,
+                    } || target[p];
+                }
+            })
+        };
 
     }
 

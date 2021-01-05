@@ -3,7 +3,8 @@
     "module": "CommonJS",
     "target": "ESNext",
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "sourceRoot": "./src",
     "outDir": "./out",

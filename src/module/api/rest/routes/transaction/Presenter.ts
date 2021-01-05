@@ -1,7 +1,9 @@
-import { Context, Next }        from "koa";
-import { Post, Presenter, Use } from "../../../../../lib/decorators/Koa";
-import { AuthAccessor }         from "../auth/accessor/AuthAccessor";
-import { ClientAccessor }       from "../auth/accessor/ClientAccessor";
+import { Context, Next }           from "koa";
+import { Get, Presenter, Use }     from "../../../../../lib/decorators/Koa";
+import VoucherStory                from "../../../../story/voucher/Story";
+import { BearerAccessor }          from "../auth/accessor/BearerAccessor";
+import { JWTAccessor }             from "../auth/accessor/JWTAccessor";
+import { TransactionListAccessor } from "./accessor/TransactionListAccessor";
 
 /**
  * @name AuthPresenter
@@ -12,13 +14,17 @@ export default class TransactionPresenter {
      * @name stories
      * @private
      */
-    private stories: {};
+    private stories: {
+        Voucher: VoucherStory,
+    };
 
     /**
      * @name AuthPresenter
      */
     constructor() {
-        this.stories = {};
+        this.stories = {
+            Voucher: new VoucherStory,
+        };
     }
 
     /**
@@ -26,18 +32,19 @@ export default class TransactionPresenter {
      * @param context
      * @param next
      */
-    @Post({path: "/"})
-    @Use(AuthAccessor)
-    @Use(ClientAccessor)
+    @Get()
+    @Use(BearerAccessor)
+    @Use(JWTAccessor)
+    @Use(TransactionListAccessor)
     async "/"(context: Context, next: Next) {
         try {
-            const {client} = context.state;
-            const res = {};
-
+            const {conditions} = context.state;
+            const res = await this.stories.Voucher.transactions(conditions);
             await context.assert(res, 400, "wrong");
             context.body = res;
         } catch (e) {
-            await context.throw(400, e.message);
+            e.status = e.status || 400;
+            await context.throw(e);
         }
 
     }

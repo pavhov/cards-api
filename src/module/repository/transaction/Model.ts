@@ -6,6 +6,16 @@ import ITransaction from "./Interface";
 
 export default class TransactionModel extends BaseModel<ITransaction> {
     /**
+     * @name modelName
+     */
+    public static modelName = "Transaction";
+
+    /**
+     * @name tableName
+     */
+    public static tableName = "transaction";
+
+    /**
      * @name TransactionId
      */
     public static TransactionId?: ModelAttributeColumnOptions = {
@@ -34,6 +44,15 @@ export default class TransactionModel extends BaseModel<ITransaction> {
     };
 
     /**
+     * @name VoucherCode
+     */
+    public static VoucherCode?: ModelAttributeColumnOptions = {
+        type: DataTypes.STRING,
+        field: "voucher_code",
+        allowNull: false,
+    };
+
+    /**
      * @name ClientId
      */
     public static ClientId?: ModelAttributeColumnOptions = {
@@ -56,15 +75,6 @@ export default class TransactionModel extends BaseModel<ITransaction> {
     };
 
     /**
-     * @name CreatedDtm
-     */
-    public static CreatedDtm?: ModelAttributeColumnOptions = {
-        type: DataTypes.DATE,
-        field: "created_dtm",
-        allowNull: false,
-    };
-
-    /**
      * @name StatusSnapshot
      */
     public static StatusSnapshot?: ModelAttributeColumnOptions = {
@@ -75,25 +85,54 @@ export default class TransactionModel extends BaseModel<ITransaction> {
     };
 
     /**
-     * @name modelName
+     * @name SearchVector
      */
-    public static modelName = "Transaction";
+    public static SearchVector?: ModelAttributeColumnOptions = {
+        type: "TSVECTOR",
+        field: "search_vector",
+        allowNull: true,
+    };
 
     /**
-     * @name tableName
+     * @name CreatedDtm
      */
-    public static tableName = "transaction";
+    public static CreatedDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "created_dtm",
+    };
+
+    /**
+     * @name ValidStartDtm
+     */
+    public static ValidStartDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "valid_start_dtm",
+        allowNull: false,
+    };
+
+    /**
+     * @name ValidEndDtm
+     */
+    public static ValidEndDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "valid_end_dtm",
+        allowNull: false,
+    };
 
     /**
      * @name _fieldSet
      */
     private static _fieldSet = {
         TransactionId: TransactionModel.TransactionId,
-        VoucherId: TransactionModel.VoucherId,
         ClientId: TransactionModel.ClientId,
+        VoucherId: TransactionModel.VoucherId,
+        VoucherCode: TransactionModel.VoucherCode,
         BatchNo: TransactionModel.BatchNo,
-        CreatedDtm: TransactionModel.CreatedDtm,
         StatusSnapshot: TransactionModel.StatusSnapshot,
+        SearchVector: TransactionModel.SearchVector,
+        CreatedDtm: TransactionModel.CreatedDtm,
+        ValidStartDtm: TransactionModel.ValidStartDtm,
+        ValidEndDtm: TransactionModel.ValidEndDtm,
     };
 
     /**
@@ -114,18 +153,30 @@ export default class TransactionModel extends BaseModel<ITransaction> {
             fields: [TransactionModel.VoucherId.field],
             type: "SPATIAL",
         }, {
+            fields: [TransactionModel.VoucherCode.field],
+            type: "SPATIAL",
+        }, {
             fields: [TransactionModel.ClientId.field],
             type: "SPATIAL",
         }, {
             fields: [TransactionModel.BatchNo.field],
             type: "SPATIAL",
         }, {
-            fields: [TransactionModel.CreatedDtm.field],
-            type: "SPATIAL",
-        }, {
             fields: [TransactionModel.StatusSnapshot.field],
             type: "SPATIAL",
-        },];
+        }, {
+            fields: [TransactionModel.ValidStartDtm.field],
+            type: "SPATIAL",
+        }, {
+            fields: [TransactionModel.ValidEndDtm.field],
+            type: "SPATIAL",
+        }, {
+            fields: [TransactionModel.SearchVector.field],
+            type: "FULLTEXT",
+            using: "GIN",
+            parser: "blank"
+            // parser: "hword_part"
+        }];
     }
 
 }

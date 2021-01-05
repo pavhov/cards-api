@@ -24,16 +24,23 @@ export class AuthAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         const {
-            headers: {authorization: Authorization, timestamp: Timestamp,},
+            headers: {
+                authorization,
+                Authorization,
+                timestamp: Timestamp,
+            },
             body: {grant_type, clientId, clientSecret, scopes,},
         } = context.request;
-        if (!Authorization || !Timestamp) {
+        if (!(authorization || Authorization) || !Timestamp) {
             await context.throw(400, `Required on header "Authorization", "Timestamp" properties!`);
         }
         if (!grant_type || !clientId || !clientSecret || !scopes) {
             await context.throw(400, `Required on body "grant_type", "clientId", "clientSecret", "scopes" properties!`);
         }
-        context.state.header = {Authorization, Timestamp};
+        context.state.header = {
+            Authorization: (authorization || Authorization),
+            Timestamp
+        };
         context.state.body = {grant_type, clientId, clientSecret, scopes};
         await next();
     }

@@ -76,7 +76,6 @@ export default class VoucherModel extends BaseModel<IVoucher> {
     public static CreatedDtm?: ModelAttributeColumnOptions = {
         type: DataTypes.DATE,
         field: "created_dtm",
-        allowNull: true,
     };
 
     /**
@@ -170,6 +169,12 @@ export default class VoucherModel extends BaseModel<IVoucher> {
             type: "UNIQUE",
         }, {
             fields: [VoucherModel.Status.field],
+            type: "SPATIAL",
+        }, {
+            fields: [VoucherModel.ValidStartDtm.field],
+            type: "SPATIAL",
+        }, {
+            fields: [VoucherModel.ValidEndDtm.field],
             type: "SPATIAL",
         }, {
             fields: [VoucherModel.SearchVector.field],

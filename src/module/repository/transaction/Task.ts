@@ -5,7 +5,7 @@ import Model                                                                    
 import { CreateOptions, DestroyOptions, FindOptions, Includeable, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
 import ClientModel                                                                                    from "./../client/Model";
 import VoucherModel                                                                                   from "./../voucher/Model";
-import { Transaction }                                                                                from "sequelize";
+import { InstanceUpdateOptions, literal, Transaction }                                                from "sequelize";
 
 /**
  * @name Task
@@ -26,8 +26,12 @@ export default class Task extends DBStory {
         this._model = Model;
         this._options = {
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            createdAt: "created_dtm",
+            updatedAt: false,
+            hooks: {
+                afterCreate: this.afterCreate,
+                afterUpdate: this.afterUpdate,
+            },
         } as any;
 
         this._attributes = this._model.fieldSet;
@@ -45,11 +49,31 @@ export default class Task extends DBStory {
         return Task._instance;
     }
 
+    async afterCreate(attributes: Model, options: CreateOptions<Model["_attributes"]>): Promise<void> {
+        let val = `to_tsvector("${
+            Model.tableName}"."${Model.TransactionId.field}" || ' ' || "${
+            Model.tableName}"."${Model.VoucherId.field}" || ' ' || "${
+            Model.tableName}"."${Model.VoucherCode.field}" || ' ' || "${
+            Model.tableName}"."${Model.CreatedDtm.field}" || ' ' || "${
+            Model.tableName}"."${Model.BatchNo.field}")`;
+        await Model.update({SearchVector: literal(val)} as any, {...options, where: {TransactionId: (attributes as any).TransactionId}, hooks: false});
+    }
+
+    async afterUpdate(instance: Model, options: InstanceUpdateOptions<Model["_attributes"]>): Promise<void> {
+        let val = `to_tsvector("${
+            Model.tableName}"."${Model.TransactionId.field}" || ' ' || "${
+            Model.tableName}"."${Model.VoucherId.field}" || ' ' || "${
+            Model.tableName}"."${Model.VoucherCode.field}" || ' ' || "${
+            Model.tableName}"."${Model.CreatedDtm.field}" || ' ' || "${
+            Model.tableName}"."${Model.BatchNo.field}")`;
+        await Model.update({SearchVector: literal(val)} as any, {...options, where: {TransactionId: (instance as any).TransactionId}, hooks: false});
+    }
+
     /**
      * @name getOne
      * @param options
      */
-    public getOne<M extends Model>(options: NonNullFindOptions<M["_attributes"]>): Promise<Model> {
+    public getOne(options: NonNullFindOptions<Model["_attributes"]>): Promise<Model> {
         return Model.findOne({
             ...options,
             raw: false,
@@ -72,21 +96,25 @@ export default class Task extends DBStory {
     }
 
     /**
+     * @name getListAndCount
+     * @param options
+     */
+    public getListAndCount<M extends Model>(options?: FindOptions<M["_attributes"]>): Promise<{ rows: Model[]; count: number }> {
+        return Model.findAndCountAll({
+            ...options,
+            raw: false,
+            nest: false,
+            mapToModel: false,
+        } as any);
+    }
+
+    /**
      * @name updateOne
      * @param values
      * @param options
      */
     public updateOne(values: Partial<Model["_attributes"]>, options: UpdateOptions<Model["_attributes"]>): Promise<[number, Model[]]> {
         return Model.update(values, options);
-    }
-
-    /**
-     * @name createOne
-     * @param values
-     * @param options
-     */
-    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
-        return await Model.create(values, options);
     }
 
     /**
@@ -108,6 +136,22 @@ export default class Task extends DBStory {
             return this.updateOne(values, {where: options.where});
         }
         return this._model.create({...options.where, ...values});
+    }
+
+    /**
+     * @name createOne
+     * @param values
+     * @param options
+     */
+    public async createOne(values: Model["_creationAttributes"], options?: CreateOptions<Model["_attributes"]>): Promise<Model | Transaction | any> {
+        return await Model.create(values, options);
+    }
+
+    /**
+     * @name transaction
+     */
+    public async transaction(): Promise<Transaction> {
+        return await Model.sequelize.transaction({benchmark: true});
     }
 
     /**
@@ -145,11 +189,15 @@ export default class Task extends DBStory {
             as: "client",
             foreignKey: "ClientId",
             targetKey: "ClientId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
         Model.belongsTo(VoucherModel, {
             as: "voucher",
             foreignKey: "VoucherId",
             targetKey: "VoucherId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
     }
 }

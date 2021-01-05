@@ -1,6 +1,5 @@
-import { BulkCreateOptions, InstanceUpdateOptions, literal, Transaction }                                          from "sequelize";
+import { InstanceUpdateOptions, literal, Transaction }                                                             from "sequelize";
 import { CreateOptions, DestroyOptions, FindOptions, InitOptions, ModelStatic, NonNullFindOptions, UpdateOptions } from "sequelize/types/lib/model";
-import { HookReturn }                                                                                              from "sequelize/types/lib/hooks";
 
 import { DBModuleInIt } from "../../../lib/decorators/DBModul";
 import DBStory          from "./../../../lib/abstract/DBStory";
@@ -29,8 +28,8 @@ export default class Task extends DBStory {
         this._model = Model;
         this._options = {
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            createdAt: "created_dtm",
+            updatedAt: false,
             hooks: {
                 afterCreate: this.afterCreate,
                 afterUpdate: this.afterUpdate,
@@ -59,7 +58,7 @@ export default class Task extends DBStory {
             val += `|| ' ' || "${Model.tableName}"."${Model.BatchNo.field}"`;
         }
         val += ")";
-        await Model.update({"SearchVector": literal(val)}, {...options, where: {VoucherId: (attributes as any).VoucherId}, hooks: false});
+        await Model.update({SearchVector: literal(val)}, {...options, where: {VoucherId: (attributes as any).VoucherId}, hooks: false});
     }
 
     async afterUpdate(instance: Model, options: InstanceUpdateOptions<Model["_attributes"]>): Promise<void> {
@@ -68,7 +67,7 @@ export default class Task extends DBStory {
             val += `|| ' ' || "${Model.tableName}"."${Model.BatchNo.field}"`;
         }
         val += ")";
-        await Model.update({"SearchVector": literal(val)}, {...options, where: {VoucherId: (instance as any).VoucherId}, hooks: false});
+        await Model.update({SearchVector: literal(val)}, {...options, where: {VoucherId: (instance as any).VoucherId}, hooks: false});
     }
 
     /**
@@ -204,16 +203,22 @@ export default class Task extends DBStory {
             as: "client",
             foreignKey: "ClientId",
             targetKey: "ClientId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
         Model.hasMany(TransactionModel, {
             as: "transactions",
             foreignKey: "VoucherId",
             sourceKey: "VoucherId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
         Model.hasMany(ItemModel, {
             as: "items",
             foreignKey: "VoucherId",
             sourceKey: "VoucherId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
     }
 }

@@ -51,7 +51,7 @@ export class RefreshTokenWithClientAccessor {
             });
             context.state.token = client && client.toJSON();
         } catch (e) {
-            await context.throw(404, new Error("NotFound"));
+            await context.throw(404, new Error("NotExpired"));
             return;
         }
         await next();

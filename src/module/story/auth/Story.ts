@@ -46,6 +46,7 @@ export default class Story {
         let authSplit = header.Authorization.split("@");
         let baseAuth = `${baseHash}@${Date.now()}`;
 
+        console.log(md5hash);
         if (authSplit[0] !== md5hash) {
             throw new Error("wrong hash");
         }
@@ -82,7 +83,7 @@ export default class Story {
             ClientIndex: body.clientId,
             ClientSecret: body.clientSecret,
             Scopes: body.scopes,
-        }, result);
+        }, client, result);
         return result;
     }
 
@@ -131,30 +132,34 @@ export default class Story {
 
     /**
      * @name createClient
-     * @param clientData
+     * @param newClient
+     * @param existingClient
      * @param tokenData
      * @private
      */
-    private async createClient(clientData: ClientInterface, tokenData: any) {
+    private async createClient(newClient: ClientInterface, existingClient: ClientInterface, tokenData: any) {
         const tr = await this.tasks.Client.transaction();
         try {
-            let result = await this.tasks.Client.upsertOne(clientData, {transaction: tr});
-            const client = result[0] && result[0].toJSON();
+            if (!existingClient) {
+                newClient = await this.tasks.Client.createOne(newClient, {transaction: tr});
+            } else {
+                newClient = existingClient;
+            }
             const [ExpiresIn, RefreshTokenExpiresIn] = [
                 moment().add(ms(tokenData.expires_in)).utc().toDate(), moment().add(ms(tokenData.refresh_token_expires_in)).utc().toDate()
             ];
 
-            const token = await this.tasks.Token.createOne({
-                ClientId: (client as any).ClientId,
+            const token = await this.tasks.Token.upsertOne({
+                ClientId: (newClient as any).ClientId,
                 AccessToken: tokenData.access_token,
                 RefreshToken: tokenData.refresh_token,
                 ExpiresIn: ExpiresIn,
                 RefreshTokenExpiresIn: RefreshTokenExpiresIn,
-                AccessTokenSecret: clientData.ClientSecret,
+                AccessTokenSecret: newClient.ClientSecret,
             }, {transaction: tr});
             await tr.commit();
 
-            return {client, token};
+            return {client: newClient, token};
 
         } catch (e) {
             await tr.rollback();

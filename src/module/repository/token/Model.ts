@@ -6,7 +6,7 @@ import IToken from "./Interface";
 
 export default class TokenModel extends BaseModel<IToken> {
     /**
-     * @name Id
+     * @name TokenId
      */
     public static TokenId?: ModelAttributeColumnOptions = {
         type: DataTypes.UUID,
@@ -79,6 +79,14 @@ export default class TokenModel extends BaseModel<IToken> {
     };
 
     /**
+     * @name CreatedDtm
+     */
+    public static CreatedDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "created_dtm",
+    };
+
+    /**
      * @name modelName
      */
     public static modelName = "Token";
@@ -99,6 +107,7 @@ export default class TokenModel extends BaseModel<IToken> {
         ExpiresIn: TokenModel.ExpiresIn,
         RefreshToken: TokenModel.RefreshToken,
         RefreshTokenExpiresIn: TokenModel.RefreshTokenExpiresIn,
+        CreatedDtm: TokenModel.CreatedDtm,
 
     };
 

@@ -25,8 +25,8 @@ export default class Task extends DBStory {
         this._model = Model;
         this._options = {
             timestamps: true,
-            createdAt: "created_at",
-            updatedAt: "updated_at",
+            createdAt: "created_dtm",
+            updatedAt: false,
         } as any;
 
         this._attributes = this._model.fieldSet;
@@ -139,11 +139,15 @@ export default class Task extends DBStory {
             as: "tokens",
             foreignKey: "ClientId",
             sourceKey: "ClientId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
         Model.hasOne(TokenModel, {
             as: "token",
             foreignKey: "ClientId",
             sourceKey: "ClientId",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
         });
     }
 }

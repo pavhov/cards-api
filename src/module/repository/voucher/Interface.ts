@@ -10,7 +10,6 @@ export default interface Interface {
     BatchNo: string;
     VoucherCode: string;
     QrSrc: string;
-    CreatedDtm?: Date;
     Status: string;
     SearchVector?: any;
     Locations: string[];
@@ -18,4 +17,5 @@ export default interface Interface {
     ValidStartDtm: any;
     ValidEndDtm: any;
     transactions?: TransactionInterface[];
+    CreatedDtm?: Date;
 }

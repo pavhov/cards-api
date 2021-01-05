@@ -49,6 +49,14 @@ export default class ClientModel extends BaseModel<IStore> {
     };
 
     /**
+     * @name CreatedDtm
+     */
+    public static CreatedDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "created_dtm",
+    };
+
+    /**
      * @name modelName
      */
     public static modelName = "Client";
@@ -66,6 +74,7 @@ export default class ClientModel extends BaseModel<IStore> {
         ClientIndex: ClientModel.ClientIndex,
         ClientSecret: ClientModel.ClientSecret,
         Scopes: ClientModel.Scopes,
+        CreatedDtm: ClientModel.CreatedDtm,
     };
 
     /**

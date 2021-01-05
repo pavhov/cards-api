@@ -24,9 +24,13 @@ export class BearerAccessor {
      */
     protected async before(context: Context, next: Next): Promise<any> {
         let {
-            headers: {authorization: Authorization,},
+            headers: {
+                authorization,
+                Authorization,
+            },
         } = context.request;
-        Authorization = Authorization.split(" ");
+        console.error(Authorization);
+        Authorization = (authorization || Authorization).split(" ");
         if (!Authorization || Authorization.length !== 2) {
             await context.throw(400, `Required on header "Authorization" properties!`);
         }

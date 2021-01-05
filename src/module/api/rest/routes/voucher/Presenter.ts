@@ -1,5 +1,5 @@
-import { Context, Next }                    from "koa";
-import { Get, Patch, Post, Presenter, Use } from "../../../../../lib/decorators/Koa";
+import { Context, Next }                            from "koa";
+import { Delete, Get, Patch, Post, Presenter, Use } from "../../../../../lib/decorators/Koa";
 
 import { VoucherCreateAccessor } from "./accessor/VoucherCreateAccessor";
 
@@ -110,7 +110,7 @@ export default class VoucherPresenter {
     @Use(BearerAccessor)
     @Use(JWTAccessor)
     @Use(VoucherRedeemAccessor)
-    async "/voucher/:id/redeemed"(context: Context, next: Next) {
+    async "/:id/redeemed"(context: Context, next: Next) {
         try {
             await this.stories.Voucher.redeemed(context.params.id);
             context.status = 204;
@@ -146,14 +146,15 @@ export default class VoucherPresenter {
      * @param context
      * @param next
      */
-    @Patch({path: "/:id"})
+    @Delete({path: "/:id"})
     @Use(BearerAccessor)
     @Use(JWTAccessor)
     @Use(VoucherVoidAccessor)
     async "/:id/remove"(context: Context, next: Next) {
         try {
             const {conditions} = context.state;
-            await this.stories.Voucher.delete(context.params.id);
+            await this.stories.Voucher.void(context.params.id);
+            context.status = 204;
         } catch (e) {
             e.status = e.status || 400;
             await context.throw(e);

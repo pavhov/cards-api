@@ -15,7 +15,7 @@ export const ExpressionHandler = async (ctx: Context, next: Next) => {
     } catch (e) {
         ctx.status = parseInt(e.code || e.status) || 400;
         ctx.body = new HttpError(`${e.name} ${e.message}`, ctx.status).toJSON();
-        const stackSlice = e.stack.split("\n");
+        const stackSlice = e.stack && e.stack.split("\n");
         error("Expression:", "status:", ctx.status, "message:", e.message, "stack:", (stackSlice.length && JSON.stringify(stackSlice.splice(1, 4)).replace(new RegExp(" {2}", "gm"), "")));
     }
 };

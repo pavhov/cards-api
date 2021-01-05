@@ -51,6 +51,15 @@ export default class ItemModel extends BaseModel<IStore> {
     };
 
     /**
+     * @name CreatedDtm
+     */
+    public static CreatedDtm?: ModelAttributeColumnOptions = {
+        type: DataTypes.DATE,
+        field: "created_dtm",
+        allowNull: false,
+    };
+
+    /**
      * @name modelName
      */
     public static modelName = "Item";
@@ -68,6 +77,7 @@ export default class ItemModel extends BaseModel<IStore> {
         ItemIndex: ItemModel.ItemIndex,
         VoucherId: ItemModel.VoucherId,
         Quantity: ItemModel.Quantity,
+        CreatedDtm: ItemModel.CreatedDtm,
     };
 
     /**
@@ -82,7 +92,7 @@ export default class ItemModel extends BaseModel<IStore> {
      */
     static get indexes(): ModelIndexesOptions[] {
         return [{
-            fields: [ItemModel.ItemIndex.field],
+            fields: [ItemModel.ItemIndex.field, ItemModel.VoucherId.field],
             type: "UNIQUE",
         }, {
             fields: [ItemModel.ItemId.field],
